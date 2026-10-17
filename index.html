@@ -139,6 +139,14 @@ main { min-width: 0; }
 }
 .tile .art { position: relative; flex: 1; display: grid; place-items: center; min-height: 0; padding: 6px; }
 .tile .tfoot { display: flex; justify-content: space-between; padding: 0 6px 5px; font-size: 12px; min-height: 18px; font-variant-numeric: tabular-nums; }
+.tile .slot {
+  position: absolute; top: 4px; left: 4px; font-size: 9px; letter-spacing: 0.6px; text-transform: uppercase;
+  background: #f3e9d4; color: #1f1c15; border: 1px solid #1f1c15; border-radius: 4px; padding: 0 4px; line-height: 1.5;
+}
+.chip .slot-tag {
+  font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--ink-2);
+  border: 1px solid var(--line); border-radius: 4px; padding: 0 3px; line-height: 1.5;
+}
 .tile .flag { position: absolute; top: 4px; right: 4px; font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase; background: #1f1c15; color: #fff9e3; border-radius: 4px; padding: 1px 4px; }
 
 .ico {
@@ -301,6 +309,9 @@ a.chip:hover { background: var(--panel-2); }
 .stat .l { font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--ink-2); }
 .stat .v { font-size: 15px; font-variant-numeric: tabular-nums; }
 .rule { font-size: 14px; }
+.filter-note { margin: 10px 0 0; font-size: 13px; color: var(--ink-2); background: var(--panel); border: 1.5px dashed var(--line); border-radius: 8px; padding: 6px 10px; max-width: 60ch; }
+.linkbtn { background: none; border: 0; padding: 0; font: inherit; color: var(--ink); text-decoration: underline; cursor: pointer; }
+.dbody.quiet .hero .tile, .dbody.quiet > .hero > div:not(.tile), .dbody.quiet > .block { animation: none !important; }
 .muted { color: var(--ink-2); }
 .skin { display: grid; gap: 6px; margin-top: 4px; }
 .skin label { font-family: var(--font-display); font-size: 15px; letter-spacing: 0.6px; text-transform: uppercase; color: var(--ink-2); }
@@ -481,11 +492,37 @@ const META = {"build": "16550853", "cards": 708, "recipes": 321, "packs": 46};
     const x = count > 1 ? `<span class="x">${count}×</span>` : "";
     if (!C[id]) return `<span class="chip pseudo">${x}${esc(name(id))}</span>`;
     const [bg, , ic] = pal(id);
-    return `<a class="chip" href="#${esc(id)}"><span class="mini" style="--cbg:${bg};--cic:${ic}">${art(id)}</span>${x}${esc(name(id))}</a>`;
+    const slot = C[id].t === "Equipable" && C[id].slot ? `<span class="slot-tag" title="${esc(C[id].slot)} Equipment">${esc(C[id].slot)}</span>` : "";
+    return `<a class="chip" href="#${esc(id)}"><span class="mini" style="--cbg:${bg};--cic:${ic}">${art(id)}</span>${x}${esc(name(id))}${slot}</a>`;
   }
+  // ---------- "what I own": the Expansion filter also trims card pages ----------
+  let pageAll = false;  // "Show them" on a card page turns the trimming off for that page
+  const hidden = { recipes: 0, other: 0 };
+  const trimming = () => state.exp.size > 0 && !pageAll;
+  const have = (id) => !trimming() || !C[id] || state.exp.has(C[id].x);
+  const packExp = (p) => p.src === "spirits" ? "cursed" : p.src === "cities" ? "2000" : p.board === "island" ? "island" : "base";
+  // usable only if you own the idea, every result, and at least one card for every ingredient slot
+  const recipeOK = (ri) => { const r = R[ri]; return have(r.bp) && r.out.every(have) && r.req.every((t) => t.split("|").some(have)); };
+  function keep(list, test, kind = "other") {
+    if (!trimming()) return list;
+    const out = list.filter(test);
+    hidden[kind] += list.length - out.length;
+    return out;
+  }
+  function filterNote() {
+    if (!state.exp.size) return "";
+    if (pageAll) return `<p class="filter-note">Showing everything, including cards outside your Expansion filter. <button type="button" class="linkbtn" id="toggle-hidden">Hide them again</button></p>`;
+    const bits = [];
+    if (hidden.recipes) bits.push(plural(hidden.recipes, "recipe"));
+    if (hidden.other) bits.push(`${hidden.other} other ${hidden.other === 1 ? "entry" : "entries"}`);
+    if (!bits.length) return "";
+    return `<p class="filter-note">${bits.join(" and ")} hidden by your Expansion filter. <button type="button" class="linkbtn" id="toggle-hidden">Show them</button></p>`;
+  }
+
   function tokenChip(tok, count) {
-    const alts = tok.split("|");
-    if (alts.length === 1) return chip(tok, count);
+    const all = tok.split("|"), owned = all.filter(have);
+    const alts = owned.length ? owned : all;  // only list the alternatives you own
+    if (alts.length === 1) return chip(alts[0], count);
     const x = count > 1 ? `<span class="x">${count}×</span>` : "";
     return `<span class="alt">${x}${alts.map((a) => chip(a)).join('<span class="or">or</span>')}</span>`;
   }
@@ -531,9 +568,11 @@ const META = {"build": "16550853", "cards": 708, "recipes": 321, "packs": 46};
     const dark = ["#393831", "#636363", "#404752"].includes(bg);
     const nameColor = dark ? "#fff9e3" : "#1f1c15";
     const flag = c.x === "cursed" || c.x === "2000" ? `<span class="flag">${c.x === "2000" ? "2000" : "CW"}</span>` : "";
+    const slot = c.t === "Equipable" && c.slot ? `<span class="slot" aria-hidden="true">${esc(c.slot)}</span>` : "";
+    const label = c.n + (slot ? `, ${c.slot} Equipment` : "");
     const tag = big ? "div" : "button";
-    return `<${tag} class="tile" ${big ? "" : `type="button" data-id="${esc(id)}"`} style="--cbg:${bg};--cband:${band};--cic:${ic};--cname:${nameColor}" ${big ? "" : `aria-label="${esc(c.n)}"`}>
-      <span class="tname">${esc(c.n)}</span><span class="art">${big ? "" : flag}${art(id)}</span><span class="tfoot">${foot(id)}</span></${tag}>`;
+    return `<${tag} class="tile" ${big ? "" : `type="button" data-id="${esc(id)}"`} style="--cbg:${bg};--cband:${band};--cic:${ic};--cname:${nameColor}" ${big ? "" : `aria-label="${esc(label)}"`}>
+      <span class="tname">${esc(c.n)}</span><span class="art">${slot}${big ? "" : flag}${art(id)}</span><span class="tfoot">${foot(id)}</span></${tag}>`;
   }
 
   // ---------- filters ----------
@@ -550,15 +589,22 @@ const META = {"build": "16550853", "cards": 708, "recipes": 321, "packs": 46};
   const searchText = {};
   for (const id of ids) searchText[id] = (C[id].n + " " + id.replace(/_/g, " ")).toLowerCase();
 
+  // Search: commas separate alternatives ("spear, plank" finds either); the words inside one term must all match
+  let qCache = null, qTermsCache = [];
+  function qTerms() {
+    if (qCache !== state.q) {
+      qCache = state.q;
+      qTermsCache = state.q.toLowerCase().split(",").map((t) => t.trim().split(/\s+/).filter(Boolean)).filter((t) => t.length);
+    }
+    return qTermsCache;
+  }
+  const matches = (text, terms) => !terms.length || terms.some((words) => words.every((w) => text.includes(w)));
+
   function visible(id) {
     const c = C[id];
     if (state.exp.size && !state.exp.has(c.x)) return false;
     if (state.board.size && !c.b.some((b) => state.board.has(b))) return false;
-    if (state.q) {
-      const words = state.q.toLowerCase().split(/\s+/).filter(Boolean);
-      if (!words.every((w) => searchText[id].includes(w))) return false;
-    }
-    return true;
+    return matches(searchText[id], qTerms());
   }
 
   function renderFilters() {
@@ -597,8 +643,7 @@ const META = {"build": "16550853", "cards": 708, "recipes": 321, "packs": 46};
 
   function packShown(p) {
     if (state.board.size && !state.board.has(p.board)) return false;
-    const exp = p.src === "spirits" ? "cursed" : p.src === "cities" ? "2000" : p.board === "island" ? "island" : "base";
-    return !(state.exp.size && !state.exp.has(exp));
+    return !(state.exp.size && !state.exp.has(packExp(p)));
   }
   function renderPacks() {
     const main = $("#main");
@@ -609,17 +654,17 @@ const META = {"build": "16550853", "cards": 708, "recipes": 321, "packs": 46};
     }
     $("#count").textContent = `${P.length} booster packs`;
     $("#catnav").innerHTML = Object.keys(byBoard).map((b) => `<a href="#cat-${b}"><span class="lbl">${esc(BOARDS[b])}</span><span class="n">${byBoard[b].length}</span></a>`).join("");
-    const q = state.q.toLowerCase();
+    const terms = qTerms();
     main.innerHTML = Object.entries(byBoard).map(([b, list]) => `
       <section class="section packs-board" id="cat-${b}"><div class="section-head"><h2>${esc(BOARDS[b])}</h2><span class="n">${list.length} packs</span></div>
       <div class="packs-grid">${list.map((p) => {
         const contents = p.contents.filter((x) => C[x.c] && !C[x.c].hidden);
         const top = contents.slice(0, 8), rest = contents.slice(8);
         const row = (x) => `<div class="row"><div>${chip(x.c)}</div><div class="bar"><span style="width:${Math.max(3, Math.round(x.p * 100))}%"></span></div><div class="pct" ${x.note ? `title="${esc(x.note)}"` : ""}>${x.g ? (x.note ? "if cursed" : x.g > 1 ? x.g + "×" : "always") : pct(x.p)}</div></div>`;
-        const hit = q && contents.some((x) => searchText[x.c]?.includes(q));
+        const hit = terms.length && contents.some((x) => searchText[x.c] && matches(searchText[x.c], terms));
         const cost = p.cost > 0 ? `${p.cost} ${CURRENCY[p.board]}` : p.cost === 0 ? "Free" : "Not for sale";
         const unlock = p.intro ? "Starting pack" : p.unlock ? `Unlocks after ${p.unlock} quests` : "Available from the start";
-        return `<article class="pack" data-pack="${esc(p.id)}" ${q && !hit && !p.n.toLowerCase().includes(q) ? "hidden" : ""}>
+        return `<article class="pack" data-pack="${esc(p.id)}" ${terms.length && !hit && !matches(p.n.toLowerCase(), terms) ? "hidden" : ""}>
           <h3>${esc(p.n)}</h3><div class="meta"><span>${esc(cost)}</span><span>${esc(unlock)}</span><span>${p.cards} cards</span></div>
           <div class="odds">${top.map(row).join("")}</div>
           ${rest.length ? `<details><summary data-n="${rest.length}">${rest.length} more ${rest.length === 1 ? "card" : "cards"}</summary><div class="odds">${rest.map(row).join("")}</div></details>` : ""}
@@ -736,7 +781,7 @@ const META = {"build": "16550853", "cards": 708, "recipes": 321, "packs": 46};
   function getSection(id, c) {
     const g = c.get || [];
     const parts = [];
-    const packs = g.filter((e) => e.k === "pack");
+    const packs = keep(g.filter((e) => e.k === "pack"), (e) => state.exp.has(packExp(packById[e.pack])));
     if (packs.length) {
       parts.push(`<h4>Booster packs</h4><div class="list">${packs.sort((a, b) => b.p - a.p).map((e) => {
         const p = packById[e.pack];
@@ -744,15 +789,16 @@ const META = {"build": "16550853", "cards": 708, "recipes": 321, "packs": 46};
         return `<div class="li"><span class="tag">${esc(BOARDS[p.board])}</span><b>${esc(p.n)}</b><span class="pct">${what}${e.note ? " · " + esc(e.note) : ""}</span></div>`;
       }).join("")}</div>`);
     }
-    const recs = g.filter((e) => e.k === "recipe");
+    const recs = keep(g.filter((e) => e.k === "recipe"), (e) => recipeOK(e.r), "recipes");
     if (recs.length) parts.push(`<h4>Make it</h4><div class="list">${recs.map((e) => recipeHTML(e.r)).join("")}</div>`);
-    const harvest = g.filter((e) => e.k === "harvest");
+    const harvest = keep(g.filter((e) => e.k === "harvest"), (e) => have(e.from));
     if (harvest.length) parts.push(`<h4>Harvest or explore</h4><div class="list">${harvest.sort((a, b) => b.p - a.p).map((e) =>
       `<div class="li">${srcLabel(e.from)} ${chip(e.from)}<span class="pct">${pct(e.p)} of results</span></div>`).join("")}</div>`);
-    const drops = g.filter((e) => e.k === "drop" || e.k === "carried");
+    const drops = keep(g.filter((e) => e.k === "drop" || e.k === "carried"), (e) => have(e.from));
     if (drops.length) parts.push(`<h4>Dropped by</h4><div class="list">${drops.map((e) =>
       `<div class="li">${chip(e.from)}<span class="pct">${e.k === "carried" ? "may carry it and drops it when killed" : pct(e.p) + " of drops"}</span></div>`).join("")}</div>`);
-    const misc = g.filter((e) => ["produce", "equip", "chest", "farm", "univ", "trap", "fish", "fishpro", "forest"].includes(e.k));
+    const misc = keep(g.filter((e) => ["produce", "equip", "chest", "farm", "univ", "trap", "fish", "fishpro", "forest"].includes(e.k)),
+      (e) => (!e.from || have(e.from)) && (!e.bait || have(e.bait)));
     if (misc.length) parts.push(`<h4>Other ways</h4><div class="list">${misc.map((e) => {
       switch (e.k) {
         case "produce": return `<div class="li">${chip(e.from)}<span class="pct">makes one every ${secs(e.t)}</span></div>`;
@@ -774,51 +820,65 @@ const META = {"build": "16550853", "cards": 708, "recipes": 321, "packs": 46};
 
   function useSection(id, c) {
     const parts = [];
+    const hiddenBefore = hidden.recipes + hidden.other;
     if (c.t === "Ideas" || c.t === "Rumors") {
-      const rs = recipesByBp[id] || [];
+      const rs = keep(recipesByBp[id] || [], (ri) => recipeOK(ri), "recipes");
       if (rs.length) parts.push(`<h4>Recipe</h4><div class="list">${rs.map((ri) => recipeHTML(ri, { noIdea: true })).join("")}</div>`);
       if (c.grp) parts.push(`<p class="muted">Listed under <b>${esc(c.grp)}</b> in the in-game Ideas tab.</p>`);
     }
     if (c.cap) parts.push(`<h4>Card limit</h4><div class="li">${esc(c.cap.text)}</div>`);
     if (c.food) parts.push(`<h4>Food</h4><div class="li">Feeds ${c.food} ${c.food === 1 ? "point" : "points"} of hunger${c.spoil ? ` · spoils after ${secs(c.spoil)}` : ""}</div>`);
     if (c.gear) {
-      parts.push(`<h4>Can wear gear</h4><div class="li">Holds one Head, one Torso and one Weapon item from the Equipment cards. Gear adds to its combat stats.</div>`);
+      parts.push(`<h4>Can wear Equipment</h4><div class="li">Holds one Head, one Torso and one Weapon piece of Equipment. Equipment adds to its combat stats.</div>`);
       if (id === "villager") {
-        const jobs = Object.keys(jobGear).sort((a, b) => name(a).localeCompare(name(b)));
-        parts.push(`<p class="muted" style="margin:8px 0 6px">Some gear also gives a Villager a new job:</p><div class="list">${jobs.map((j) =>
-          `<div class="li">${jobGear[j].map((g) => chip(g)).join('<span class="or">or</span>')}<span class="arrow">→</span>${chip(j)}</div>`).join("")}</div>`);
+        const jobs = keep(Object.keys(jobGear).sort((a, b) => name(a).localeCompare(name(b))), (j) => have(j) && jobGear[j].some(have));
+        if (jobs.length) parts.push(`<p class="muted" style="margin:8px 0 6px">Some Equipment also gives a Villager a new job:</p><div class="list">${jobs.map((j) =>
+          `<div class="li">${jobGear[j].filter(have).map((g) => chip(g)).join('<span class="or">or</span>')}<span class="arrow">→</span>${chip(j)}</div>`).join("")}</div>`);
       } else if (jobGear[id]) {
-        parts.push(`<p class="muted" style="margin:8px 0 6px">A Villager becomes ${esc(name(id))} when given:</p><div style="display:flex;flex-wrap:wrap;gap:6px">${jobGear[id].map((g) => chip(g)).join("")}</div>`);
+        const gear = keep(jobGear[id], have);
+        if (gear.length) parts.push(`<p class="muted" style="margin:8px 0 6px">A Villager becomes ${esc(name(id))} when given:</p><div style="display:flex;flex-wrap:wrap;gap:6px">${gear.map((g) => chip(g)).join("")}</div>`);
       }
     }
     if (c.t === "Equipable") {
       const bits = [`Goes in the <b>${esc(c.slot || "?")}</b> slot`];
       if (c.atk && c.atk !== "None") bits.push(`${esc(c.atk.toLowerCase())} attack`);
       parts.push(`<h4>Equip it</h4><div class="li">${bits.join(" · ")}</div>${equipStats(c)}`);
-      if (c.turns) parts.push(`<div class="li">Turns a Villager into ${chip(c.turns)}</div>`);
+      // every villager-family card can wear Equipment; list the kinds, and mention the jobs as a group
+      const wearers = keep(Object.keys(C).filter((k) => C[k].gear && !(k in jobGear))
+        .sort((a, b) => (a === "villager" ? -1 : b === "villager" ? 1 : name(a).localeCompare(name(b)))), have);
+      if (wearers.length) parts.push(`<h4>Worn by</h4><div style="display:flex;flex-wrap:wrap;gap:6px">${wearers.map((k) => chip(k)).join("")}</div>
+        <p class="muted" style="margin:6px 0 0">…plus every job a Villager can take, like Militia, Archer and Mage. Trained Monkeys can't wear Equipment.</p>`);
+      if (c.turns && keep([c.turns], have).length) parts.push(`<div class="li">Turns a Villager into ${chip(c.turns)}</div>`);
     } else if (c.st && (c.t === "Humans" || c.t === "Mobs")) {
       parts.push(`<h4>Combat</h4>${combatStats(c.st)}`);
     }
-    if (c.yields && c.yields.outs.length) {
+    const yieldOuts = c.yields ? keep(c.yields.outs, (o) => have(o.c)) : [];
+    if (yieldOuts.length) {
       const y = c.yields;
       const info = [];
       if (y.time) info.push(`each try takes ${secs(y.time)}`);
       if (y.vill > 1) info.push(`needs ${y.vill} Villagers`);
       if (y.unlimited) info.push("never runs out"); else if (y.amount) info.push(`${y.amount} ${y.amount === 1 ? "use" : "uses"} before it's gone`);
       parts.push(`<h4>${c.t === "Locations" ? "Explore it" : "Harvest it"}</h4>${info.length ? `<p class="muted" style="margin:0 0 6px">${info.join(" · ")}</p>` : ""}
-        <div class="list">${y.outs.map((o) => `<div class="li">${chip(o.c)}<span class="pct">${pct(o.p)}</span></div>`).join("")}</div>`);
+        <div class="list">${yieldOuts.map((o) => `<div class="li">${chip(o.c)}<span class="pct">${pct(o.p)}</span></div>`).join("")}</div>`);
     }
-    if (c.drops && c.drops.outs.length) parts.push(`<h4>Kill it for</h4><div class="list">${c.drops.outs.map((o) => `<div class="li">${chip(o.c)}<span class="pct">${pct(o.p)} of drops</span></div>`).join("")}</div>`);
-    if (c.carries && c.carries.length) parts.push(`<h4>May carry</h4><div class="eq" style="display:flex;flex-wrap:wrap;gap:6px">${c.carries.map((x) => chip(x)).join("")}</div>`);
-    if (c.produces) parts.push(`<h4>Produces</h4><div class="li">${chip(c.produces.c)}<span class="pct">every ${secs(c.produces.t)}</span></div>`);
-    if (c.grows) parts.push(`<h4>Grows</h4><div class="li">${chip(c.grows)}</div>`);
-    if (c.holds) parts.push(`<h4>Holds</h4><div class="li">${chip(c.holds)}</div>`);
-    if (c.teaches && c.teaches.length) parts.push(`<h4>Hands out these Ideas</h4><div style="display:flex;flex-wrap:wrap;gap:6px">${c.teaches.map((x) => chip(x)).join("")}</div>`);
-    if (c.bags) for (const b of c.bags) {
+    const dropOuts = c.drops ? keep(c.drops.outs, (o) => have(o.c)) : [];
+    if (dropOuts.length) parts.push(`<h4>Kill it for</h4><div class="list">${dropOuts.map((o) => `<div class="li">${chip(o.c)}<span class="pct">${pct(o.p)} of drops</span></div>`).join("")}</div>`);
+    const carries = keep(c.carries || [], have);
+    if (carries.length) parts.push(`<h4>May carry</h4><div class="eq" style="display:flex;flex-wrap:wrap;gap:6px">${carries.map((x) => chip(x)).join("")}</div>`);
+    if (c.produces && keep([c.produces.c], have).length) parts.push(`<h4>Produces</h4><div class="li">${chip(c.produces.c)}<span class="pct">every ${secs(c.produces.t)}</span></div>`);
+    if (c.grows && keep([c.grows], have).length) parts.push(`<h4>Grows</h4><div class="li">${chip(c.grows)}</div>`);
+    if (c.holds && keep([c.holds], have).length) parts.push(`<h4>Holds</h4><div class="li">${chip(c.holds)}</div>`);
+    const teaches = keep(c.teaches || [], have);
+    if (teaches.length) parts.push(`<h4>Hands out these Ideas</h4><div style="display:flex;flex-wrap:wrap;gap:6px">${teaches.map((x) => chip(x)).join("")}</div>`);
+    for (const b of keep(c.bags || [], (b) => !b.bait || have(b.bait))) {
+      const outs = keep(b.outs, (o) => have(o.c));
+      if (!outs.length) continue;
       const label = b.kind === "bait" ? `Catches with ${esc(name(b.bait))} as bait` : b.kind === "trap" ? "Catches without bait" : b.kind === "fishpro" ? "Catches when a Fisher works it" : "Catches";
-      parts.push(`<h4>${label}</h4><div class="list">${b.outs.map((o) => `<div class="li">${chip(o.c)}<span class="pct">${pct(o.p)}</span></div>`).join("")}</div>`);
+      parts.push(`<h4>${label}</h4><div class="list">${outs.map((o) => `<div class="li">${chip(o.c)}<span class="pct">${pct(o.p)}</span></div>`).join("")}</div>`);
     }
-    if (c.accepts && c.accepts.length) parts.push(`<h4>Takes these cards</h4><div style="display:flex;flex-wrap:wrap;gap:6px">${c.accepts.map((x) => chip(x)).join("")}</div>`);
+    const accepts = keep(c.accepts || [], have);
+    if (accepts.length) parts.push(`<h4>Takes these cards</h4><div style="display:flex;flex-wrap:wrap;gap:6px">${accepts.map((x) => chip(x)).join("")}</div>`);
     if (c.rules && c.rules.length) {
       parts.push(`<h4>Every Moon</h4><div class="list">${c.rules.map((r) => {
         const cond = r.if.length ? `If it ${r.if.join(" and ")}` : "Always";
@@ -828,14 +888,16 @@ const META = {"build": "16550853", "cards": 708, "recipes": 321, "packs": 46};
       }).join("")}</div>`);
     }
     if (c.workers) parts.push(`<h4>Staffing</h4><div class="li">Needs ${c.workers} ${c.edu ? "Educated Workers" : "Workers"}</div>`);
-    const recUse = (c.use || []).filter((e) => e.k === "recipe");
+    const recUse = keep((c.use || []).filter((e) => e.k === "recipe"), (e) => recipeOK(e.r), "recipes");
     if (recUse.length) {
       const shownR = recUse.slice(0, 40);
       parts.push(`<h4>Ingredient in ${recUse.length} ${recUse.length === 1 ? "recipe" : "recipes"}</h4><div class="list">${shownR.map((e) => recipeHTML(e.r)).join("")}</div>${recUse.length > 40 ? `<p class="muted">…and ${recUse.length - 40} more.</p>` : ""}`);
     }
-    const acc = (c.use || []).filter((e) => e.k === "accept" || e.k === "bait");
+    const acc = keep((c.use || []).filter((e) => e.k === "accept" || e.k === "bait"), (e) => have(e.at));
     if (acc.length) parts.push(`<h4>Can be placed on</h4><div class="list">${acc.map((e) => `<div class="li">${chip(e.at)}${e.k === "bait" ? '<span class="pct">as bait</span>' : ""}</div>`).join("")}</div>`);
-    if (!parts.length) {
+    if (!parts.length && hidden.recipes + hidden.other > hiddenBefore) {
+      parts.push(`<div class="notice">Everything this card is used for needs a card from an expansion outside your Expansion filter.</div>`);
+    } else if (!parts.length) {
       parts.push(`<div class="notice">${worth(c) ? "No recipe uses this card. Its main use is selling it." : "No recipe uses this card. See its description for what it does on the board."}</div>`);
     }
     return parts.join("");
@@ -854,20 +916,28 @@ const META = {"build": "16550853", "cards": 708, "recipes": 321, "packs": 46};
     if (c.bld) facts.push(`<span class="fact">Building</span>`);
     if (c.eats) facts.push(`<span class="fact">Eats ${c.eats} food per Moon${c.eatsNote ? ` <span class="muted">(${esc(c.eatsNote)})</span>` : ""}</span>`);
     if (c.cap) facts.push(`<span class="fact">${esc(c.cap.tag)}</span>`);
-    if (c.gear) facts.push(`<span class="fact">Can wear gear</span>`);
+    if (c.gear) facts.push(`<span class="fact">Can wear Equipment</span>`);
     if (c.t === "Ideas" && c.grp) facts.push(`<span class="fact"><b>Idea group</b>${esc(c.grp)}</span>`);
+    hidden.recipes = hidden.other = 0;
+    const getHTML = getSection(id, c);
+    const getHidden = hidden.recipes + hidden.other;
+    const useHTML = useSection(id, c);
+    const getFallback = getHidden
+      ? '<div class="notice">Every way to get this card needs a card from an expansion outside your Expansion filter.</div>'
+      : '<div class="notice">No source found in the game data.</div>';
     return `
       <div class="hero">${tile(id, true)}
         <div><h2>${esc(c.n)}</h2>${c.d ? `<p class="desc">“${esc(c.d)}”</p>` : ""}<div class="tags">${tags.join("")}</div>
-        ${facts.length ? `<div class="facts">${facts.join("")}</div>` : ""}</div>
+        ${facts.length ? `<div class="facts">${facts.join("")}</div>` : ""}${filterNote()}</div>
       </div>
-      <section class="block"><h3>How to get it</h3>${getSection(id, c) || '<div class="notice">No source found in the game data.</div>'}</section>
-      <section class="block"><h3>What it's used for</h3>${useSection(id, c)}</section>`;
+      <section class="block"><h3>How to get it</h3>${getHTML || getFallback}</section>
+      <section class="block"><h3>What it's used for</h3>${useHTML}</section>`;
   }
 
   const drawer = $("#drawer"), scrim = $("#scrim");
   let lastFocus = null;
   const stack = [];
+  let curId = null;
   function setHash(h) {
     try { history.replaceState(null, "", h ? "#" + h : location.pathname + location.search); } catch (e) {}
   }
@@ -890,6 +960,9 @@ const META = {"build": "16550853", "cards": 708, "recipes": 321, "packs": 46};
       // keep the delays until the last intro animation is done (block 3: 560ms delay + 380ms), or it would jump
       openingTimer = setTimeout(() => drawer.classList.remove("opening"), 1000);
     }
+    if (id !== curId) pageAll = false;
+    curId = id;
+    $("#dbody").classList.remove("quiet");
     $("#dbody").innerHTML = detailHTML(id);
     $("#dbody").scrollTop = 0;
     drawer.hidden = false; scrim.hidden = false;
@@ -926,6 +999,14 @@ const META = {"build": "16550853", "cards": 708, "recipes": 321, "packs": 46};
 
   // ---------- events ----------
   document.addEventListener("click", (ev) => {
+    if (ev.target.id === "toggle-hidden" && curId) {
+      pageAll = !pageAll;
+      const body = $("#dbody"), top = body.scrollTop;
+      body.classList.add("quiet");  // redraw without replaying the card flip
+      body.innerHTML = detailHTML(curId);
+      body.scrollTop = top;
+      return;
+    }
     const t = ev.target.closest("[data-id]");
     if (t) { location.hash = t.dataset.id; return; }
     const ex = ev.target.closest("[data-exp]");
