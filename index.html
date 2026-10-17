@@ -88,7 +88,8 @@ a { color: inherit; }
 .catnav .lbl { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .catnav .n { color: var(--ink-2); font-variant-numeric: tabular-nums; font-size: 13px; }
 .catnav a.empty { opacity: 0.4; }
-.note-small { font-size: 12px; color: var(--ink-2); }
+.note-small { font-size: 12px; color: var(--ink-2); margin: 0; }
+.rail-notes { display: grid; gap: 8px; }
 
 /* ---------- card table ---------- */
 main { min-width: 0; }
@@ -253,7 +254,10 @@ a.chip:hover { background: var(--panel-2); }
       <h2>Categories</h2>
       <nav class="catnav" id="catnav" aria-label="Categories"></nav>
     </section>
-    <p class="note-small">Click any card to see how to get it and what it's used for. Every card name inside a card page is a link too.</p>
+    <div class="rail-notes">
+      <p class="note-small">Click any card to see how to get it and what it's used for. Every card name inside a card page is a link too.</p>
+      <p class="note-small">Image credits: all card icons and artwork are from Stacklands, © <a href="https://sokpop.co/" rel="noopener">Sokpop Collective</a>, and are used here for an unofficial fan reference.</p>
+    </div>
   </aside>
   <main id="main"></main>
 </div>
