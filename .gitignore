@@ -1,0 +1,4 @@
+# Only the published page and README are tracked.
+.claude/
+extract/
+.DS_Store
