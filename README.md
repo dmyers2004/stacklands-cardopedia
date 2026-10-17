@@ -8,8 +8,4 @@ A searchable reference for every card in [Stacklands](https://store.steampowered
 - For each card: how to get it (booster packs with odds, recipes, harvesting and exploring, enemy drops) and what it's used for (recipes it goes into, food value, combat and equipment stats, building effects)
 - A booster pack view with the odds for every card in each pack
 
-The data was read from the game files of Steam build 16550853. Pack odds are estimates worked out from each pack's draw weights.
-
-The whole site is one self-contained `index.html`. It works offline too: download it and open it in any browser.
-
 Unofficial fan reference, not affiliated with or endorsed by Sokpop Collective. Stacklands, its card art and its text belong to [Sokpop Collective](https://sokpop.co/).
