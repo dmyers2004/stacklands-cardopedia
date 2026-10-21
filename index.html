@@ -321,6 +321,81 @@ a.chip:hover { background: var(--panel-2); }
 }
 .skin select:focus, .skin select:focus-visible { outline: none; }
 
+/* ---------- tree view ---------- */
+.tree-bar { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-bottom: 8px; }
+.seg { display: flex; gap: 3px; border: 2px solid var(--ink); border-radius: 999px; padding: 3px; background: var(--bg); }
+.seg button { border: 0; background: none; border-radius: 999px; padding: 4px 11px; cursor: pointer; font-size: 13px; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.tree-bar select, .tree-bar input {
+  font: inherit; font-size: 13px; color: var(--ink); background: var(--panel); border: 2px solid var(--ink);
+  border-radius: 999px; padding: 4px 12px; min-width: 0; max-width: 100%; width: 260px;
+}
+.tree-tools { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+.tree-tools button { border: 2px solid var(--ink); background: var(--panel); border-radius: 999px; padding: 3px 10px; cursor: pointer; font-size: 13px; min-width: 32px; }
+.tree-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--ink-2); margin-bottom: 8px; align-items: center; }
+.tree-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.tree-legend svg { width: 30px; height: 8px; }
+.tree-legend .end-sample { font-size: 9.5px; letter-spacing: 0.6px; text-transform: uppercase; background: var(--gold); color: #1f1c15; border: 1.5px solid #1f1c15; border-radius: 999px; padding: 0 6px; }
+.tree-stage {
+  position: relative; height: max(420px, calc(100vh - 250px)); border: 2px solid var(--ink); border-radius: 12px; overflow: hidden;
+  touch-action: none; cursor: grab; background-color: var(--panel-2); -webkit-user-select: none; user-select: none;
+  background-image: radial-gradient(var(--line) 1.3px, transparent 1.3px); background-size: 22px 22px;
+}
+.tree-stage.grabbing { cursor: grabbing; }
+.tree-canvas { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.tree-canvas svg { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+.tree-canvas path { fill: none; stroke: var(--ink-2); stroke-width: 2.2; }
+.tree-canvas path.e-idea { stroke: var(--accent); stroke-dasharray: 7 5; }
+.tree-canvas path.e-harvest { stroke-dasharray: 1 6; stroke-linecap: round; stroke-width: 3; }
+.tree-canvas path.e-drop { stroke: var(--danger); stroke-dasharray: 9 5; }
+.tree-canvas path.e-pack { stroke: var(--accent); stroke-width: 3; }
+.tree-canvas path.onpath { stroke: var(--ink); stroke-width: 4.5; stroke-dasharray: none; }
+.tn { position: absolute; left: 0; top: 0; width: 96px; }
+.tn-card, .tn-pack {
+  width: 96px; height: 126px; display: flex; flex-direction: column; border: 2px solid #1f1c15; border-radius: 9px;
+  box-shadow: 0 3px 0 #1f1c15; padding: 0; overflow: hidden; cursor: pointer; text-align: center; font: inherit;
+}
+.tn-card { background: var(--cbg); color: var(--cic); }
+.tn-card .tname {
+  background: var(--cband); color: var(--cname, #1f1c15); border-bottom: 2px solid #1f1c15; font-size: 11px; line-height: 1.15;
+  padding: 4px 3px; min-height: 2.55em; display: flex; align-items: center; justify-content: center; overflow-wrap: anywhere;
+}
+.tn-card .art { flex: 1; display: grid; place-items: center; padding: 4px; min-height: 0; }
+.tn-card .ico { width: 72%; }
+.tn-pack { background: var(--accent); color: var(--accent-ink); justify-content: center; align-items: center; gap: 5px; padding: 6px; }
+.tn-pack .pk { font-size: 9.5px; letter-spacing: 0.7px; text-transform: uppercase; opacity: 0.85; }
+.tn-pack .pn { font-family: var(--font-display); font-size: 15px; line-height: 1.1; }
+.tn-pack .pb { font-size: 10px; opacity: 0.85; }
+.tn-toggle {
+  position: absolute; left: 50%; bottom: -15px; transform: translateX(-50%); min-width: 30px; height: 24px; border-radius: 999px;
+  border: 2px solid var(--ink); background: var(--panel); color: var(--ink); font-size: 11px; cursor: pointer; padding: 0 6px;
+  font-variant-numeric: tabular-nums;
+}
+.tn.back .tn-toggle { bottom: auto; top: -15px; }
+.tn-end {
+  position: absolute; top: -9px; right: -8px; font-size: 9.5px; letter-spacing: 0.6px; text-transform: uppercase;
+  background: var(--gold); color: #1f1c15; border: 1.5px solid #1f1c15; border-radius: 999px; padding: 0 6px; pointer-events: none;
+}
+.tn.sel .tn-card, .tn.sel .tn-pack { outline: 3px solid var(--accent); outline-offset: 3px; }
+.tn.match .tn-card, .tn.match .tn-pack { outline: 3px dashed var(--accent); outline-offset: 3px; }
+.tn.dim { opacity: 0.28; }
+.tree-info {
+  -webkit-user-select: text; user-select: text;
+  position: absolute; right: 12px; top: 12px; z-index: 2; width: min(430px, calc(100% - 24px)); max-height: calc(100% - 24px); overflow: auto;
+  background: var(--panel); border: 2px solid var(--ink); border-radius: 12px; box-shadow: var(--shadow); padding: 10px 12px; display: grid; gap: 8px;
+}
+.tree-info .ti-head { display: flex; align-items: center; gap: 8px; }
+.tree-info .ti-head b { font-family: var(--font-display); font-weight: 400; font-size: 18px; flex: 1; min-width: 0; }
+.tree-info .ti-x { border: 0; background: none; font-size: 18px; cursor: pointer; color: var(--ink-2); line-height: 1; }
+.tree-info .ti-via { font-size: 14px; display: grid; gap: 6px; }
+.tree-info .ti-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+.tree-info .ti-btns button { border: 2px solid var(--ink); background: var(--bg); border-radius: 999px; padding: 3px 11px; cursor: pointer; font-size: 13px; }
+.tree-hint { position: absolute; left: 12px; bottom: 10px; z-index: 1; font-size: 12px; color: var(--ink-2); background: var(--panel); border: 1.5px solid var(--line); border-radius: 8px; padding: 3px 8px; pointer-events: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .tn-new { animation: tn-pop 380ms cubic-bezier(.2, .9, .3, 1.25) backwards; }
+  @keyframes tn-pop { from { opacity: 0; scale: 0.6; } }
+}
+
 /* ---------- narrow screens ---------- */
 @media (max-width: 820px) {
   .layout { grid-template-columns: minmax(0, 1fr); gap: 14px; }
@@ -350,6 +425,7 @@ a.chip:hover { background: var(--panel-2); }
     <div class="tabs" role="tablist" aria-label="View">
       <button id="tab-cards" role="tab" aria-selected="true">Cards</button>
       <button id="tab-packs" role="tab" aria-selected="false">Booster packs</button>
+      <button id="tab-tree" role="tab" aria-selected="false">Tree</button>
     </div>
   </div>
 </header>
@@ -672,14 +748,361 @@ const META = {"build": "16550853", "cards": 708, "recipes": 321, "packs": 46};
       }).join("")}</div></section>`).join("") || `<div class="empty-state"><p>No packs match these filters.</p></div>`;
   }
 
+  // ---------- Tree view: a pack forward to end cards, or an end card back to its packs ----------
+  // Each card appears once, at the first step it can be reached (breadth-first), so the tree stays a tree.
+  const PSEUDO_CARD = { any_villager: "villager", breedable_villager: "villager", any_villager_young: "teenage_villager",
+    any_villager_old: "old_villager", any_worker: "worker", any_educated_worker: "educated_worker" };
+  const useBy = {};  // card -> recipes it can go into (wildcard slots count for the matching villager or worker)
+  R.forEach((r, ri) => { for (const tok of r.req) for (const a of tok.split("|")) (useBy[PSEUDO_CARD[a] || a] ||= new Set()).add(ri); });
+  const owned = (id) => !state.exp.size || !C[id] || state.exp.has(C[id].x);
+  const ownedPack = (pid) => !state.exp.size || state.exp.has(packExp(packById[pid]));
+  const listed = (id) => !!C[id] && !C[id].hidden;
+  const recipeUsable = (ri) => { const r = R[ri]; return owned(r.bp) && r.out.every(owned) && r.req.every((t) => t.split("|").some((a) => owned(PSEUDO_CARD[a] || a))); };
+  function forwardLinks(key) {
+    const out = [];
+    if (key.startsWith("pack:")) {
+      for (const x of packById[key.slice(5)].contents) out.push({ to: x.c, kind: "pack", p: x.p, g: x.g });
+    } else {
+      const c = C[key];
+      for (const ri of useBy[key] || []) for (const o of R[ri].out) out.push({ to: o, kind: "recipe", ri });
+      if (c.t === "Ideas" || c.t === "Rumors") for (const ri of recipesByBp[key] || []) for (const o of R[ri].out) out.push({ to: o, kind: "idea", ri });
+      for (const o of c.yields?.outs || []) out.push({ to: o.c, kind: "harvest", p: o.p });
+      for (const o of c.drops?.outs || []) out.push({ to: o.c, kind: "drop", p: o.p });
+      for (const x of c.carries || []) out.push({ to: x, kind: "carried" });
+      if (c.produces) out.push({ to: c.produces.c, kind: "produce", t: c.produces.t });
+      if (c.grows) out.push({ to: c.grows, kind: "farm" });
+      if (c.holds) out.push({ to: c.holds, kind: "chest" });
+      for (const x of c.teaches || []) out.push({ to: x, kind: "univ" });
+      for (const b of c.bags || []) if (!b.bait || owned(b.bait)) for (const o of b.outs) out.push({ to: o.c, kind: "catch", p: o.p, bait: b.bait });
+      if (c.turns) out.push({ to: c.turns, kind: "equip" });
+    }
+    return out.filter((l) => l.to !== key && listed(l.to) && owned(l.to) && (l.ri == null || recipeUsable(l.ri)));
+  }
+  function backwardLinks(key) {
+    const out = [];
+    for (const e of C[key].get || []) {
+      if (e.k === "pack") { if (ownedPack(e.pack)) out.push({ to: "pack:" + e.pack, kind: "pack", p: e.p, g: e.g }); }
+      else if (e.k === "recipe") {
+        if (!recipeUsable(e.r)) continue;
+        const r = R[e.r];
+        if (listed(r.bp)) out.push({ to: r.bp, kind: "idea", ri: e.r });
+        for (const tok of r.req) for (const a of tok.split("|")) {
+          const k = PSEUDO_CARD[a] || a;
+          if (listed(k) && owned(k)) out.push({ to: k, kind: "recipe", ri: e.r });
+        }
+      } else if (e.from && listed(e.from) && owned(e.from) && (!e.bait || owned(e.bait))) {
+        out.push({ to: e.from, kind: { trap: "catch", fish: "catch", fishpro: "catch" }[e.k] || e.k, p: e.p, t: e.t, bait: e.bait });
+      }
+    }
+    return out.filter((l) => l.to !== key);
+  }
+  const keyName = (k) => (k.startsWith("pack:") ? packById[k.slice(5)].n : C[k]?.n || k);
+  const NW = 96, NH = 126, XS = 114, YS = 196;  // node size, sibling spacing, step spacing
+  const TREE = { dir: "forward", from: "pack:basic", target: null, root: null, byKey: null, sig: "", sel: null,
+    view: { s: 1, tx: 24, ty: 24 }, size: { w: 0, h: 0 }, prevVis: new Set(), lastQ: null, dragged: false };
+
+  function defaultTarget() {
+    for (const k of ["seafood_stew", "stew", "fruit_salad", "omelette"]) if (listed(k) && owned(k) && !forwardLinks(k).length) return k;
+    return ids.filter((k) => owned(k) && !forwardLinks(k).length).sort((a, b) => C[a].n.localeCompare(C[b].n))[0];
+  }
+  function buildTree() {
+    if (TREE.dir === "forward" && TREE.from.startsWith("pack:") && !ownedPack(TREE.from.slice(5))) {
+      TREE.from = "pack:" + (P.find((p) => ownedPack(p.id)) || P[0]).id;
+    }
+    if (TREE.dir === "back" && (!TREE.target || !owned(TREE.target))) TREE.target = defaultTarget();
+    const rootKey = TREE.dir === "forward" ? TREE.from : TREE.target;
+    const linksOf = TREE.dir === "forward" ? forwardLinks : backwardLinks;
+    const root = { key: rootKey, depth: 0, kids: [], open: true, parent: null, via: null };
+    const byKey = new Map([[rootKey, root]]);
+    const queue = [root];
+    while (queue.length && byKey.size < 2500) {
+      const n = queue.shift();
+      if (n !== root && n.key.startsWith("pack:")) continue;  // packs are where you start: nothing comes before them
+      const links = linksOf(n.key).sort((a, b) => keyName(a.to).localeCompare(keyName(b.to)));
+      for (const l of links) {
+        if (byKey.has(l.to)) continue;
+        const k = { key: l.to, depth: n.depth + 1, kids: [], open: false, parent: n, via: l };
+        byKey.set(l.to, k);
+        n.kids.push(k);
+        queue.push(k);
+      }
+    }
+    for (const n of byKey.values()) n.end = !n.key.startsWith("pack:") && forwardLinks(n.key).length === 0;
+    TREE.root = root;
+    TREE.byKey = byKey;
+    TREE.sel = null;
+    TREE.prevVis = new Set();
+    TREE.lastQ = null;
+  }
+  function layoutTree() {
+    let slot = 0, maxDepth = 0;
+    const vis = [];
+    (function place(n) {
+      vis.push(n);
+      maxDepth = Math.max(maxDepth, n.depth);
+      const kids = n.open ? n.kids : [];
+      if (!kids.length) { n.x = slot++ * XS; return; }
+      kids.forEach(place);
+      n.x = (kids[0].x + kids[kids.length - 1].x) / 2;
+    })(TREE.root);
+    // top to bottom: forward starts with the pack on top; backward puts the packs on top and the target at the bottom
+    for (const n of vis) n.y = (TREE.dir === "forward" ? n.depth : maxDepth - n.depth) * YS;
+    TREE.size = { w: Math.max(0, slot - 1) * XS + NW, h: maxDepth * YS + NH };
+    return vis;
+  }
+  const EDGE_CLASS = { recipe: "e-recipe", idea: "e-idea", pack: "e-pack", drop: "e-drop", carried: "e-drop",
+    harvest: "e-harvest", produce: "e-harvest", farm: "e-harvest", chest: "e-harvest", catch: "e-harvest", univ: "e-harvest", equip: "e-recipe" };
+  function edgePath(parent, child) {
+    const [a, b] = TREE.dir === "forward" ? [parent, child] : [child, parent];  // a sits above b
+    const x1 = a.x + NW / 2, y1 = a.y + NH, x2 = b.x + NW / 2, y2 = b.y, my = (y1 + y2) / 2;
+    return `M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}`;
+  }
+  function treeNodeHTML(n, onPath, matchSet) {
+    const isPack = n.key.startsWith("pack:");
+    const cls = ["tn", TREE.dir === "back" ? "back" : "", TREE.sel === n.key ? "sel" : "", TREE.prevVis.has(n.key) ? "" : "tn-new",
+      matchSet ? (matchSet.has(n.key) ? "match" : "dim") : ""].filter(Boolean).join(" ");
+    const toggle = n.kids.length
+      ? `<button type="button" class="tn-toggle" data-tkey="${esc(n.key)}" aria-label="${n.open ? "Collapse" : "Expand"} ${esc(keyName(n.key))}">${n.open ? "−" : "+" + n.kids.length}</button>` : "";
+    let card;
+    if (isPack) {
+      const p = packById[n.key.slice(5)];
+      card = `<button type="button" class="tn-pack" data-tsel="${esc(n.key)}"><span class="pk">Pack</span><span class="pn">${esc(p.n)}</span><span class="pb">${esc(BOARDS[p.board])}</span></button>`;
+    } else {
+      const [bg, band, ic] = pal(n.key);
+      const nameColor = ["#393831", "#636363", "#404752"].includes(bg) ? "#fff9e3" : "#1f1c15";
+      card = `<button type="button" class="tn-card" data-tsel="${esc(n.key)}" style="--cbg:${bg};--cband:${band};--cic:${ic};--cname:${nameColor}"><span class="tname">${esc(C[n.key].n)}</span><span class="art">${art(n.key)}</span></button>`;
+    }
+    return `<div class="${cls}" style="transform:translate(${n.x}px,${n.y}px)">${card}${n.end ? '<span class="tn-end">End</span>' : ""}${toggle}</div>`;
+  }
+  function describeLink(l, src, dst) {  // how dst comes from src
+    const S = src.startsWith("pack:") ? `<b>${esc(packById[src.slice(5)].n)}</b>` : chip(src);
+    const D = chip(dst);
+    switch (l.kind) {
+      case "pack": return `<div>${D} comes in the ${S} pack (${l.g ? "always" : "about " + pct(l.p) + " per pack"}).</div>`;
+      case "recipe": return `<div>${S} is one of the ingredients:</div>${recipeHTML(l.ri)}`;
+      case "idea": return `<div>The ${S} Idea shows how to make it:</div>${recipeHTML(l.ri, { noIdea: true })}`;
+      case "harvest": return `<div>${C[src]?.t === "Locations" ? "Explore" : "Harvest"} ${S} to get ${D} (${pct(l.p)} of results).</div>`;
+      case "drop": return `<div>Kill ${S} for ${D} (${pct(l.p)} of drops).</div>`;
+      case "carried": return `<div>${S} may carry ${D} and drops it when killed.</div>`;
+      case "produce": return `<div>${S} makes ${D}${l.t ? " every " + secs(l.t) : ""}.</div>`;
+      case "farm": return `<div>${D} grows on ${S}.</div>`;
+      case "chest": return `<div>${D} is found inside ${S}.</div>`;
+      case "catch": return `<div>${D} is caught at ${S}${l.p ? " (" + pct(l.p) + ")" : ""}${l.bait ? " with " + esc(name(l.bait)) + " as bait" : ""}.</div>`;
+      case "univ": return `<div>Gift coins to ${S} to get the ${D} Idea.</div>`;
+      case "equip": return `<div>Give a Villager ${S} to make ${D}.</div>`;
+    }
+    return "";
+  }
+  function treeInfoHTML() {
+    const n = TREE.sel && TREE.byKey.get(TREE.sel);
+    if (!n) return "";
+    const isPack = n.key.startsWith("pack:");
+    let via = "";
+    if (n.parent && n.via) via = TREE.dir === "forward" ? describeLink(n.via, n.parent.key, n.key) : describeLink(n.via, n.key, n.parent.key);
+    const notes = [];
+    if (n.end) notes.push("Nothing else uses this card.");
+    if (n.kids.length) notes.push(TREE.dir === "forward" ? `Leads to ${plural(n.kids.length, "new card")} in this tree.` : `Needs ${plural(n.kids.length, "card")} you haven't seen yet in this tree.`);
+    const btns = isPack ? "" : `<button type="button" id="tree-open">Open card page</button>
+      <button type="button" id="tree-from-here">Start the tree here</button><button type="button" id="tree-back-here">Trace back from here</button>`;
+    return `<div class="ti-head"><b>${esc(keyName(n.key))}</b><button type="button" class="ti-x" id="tree-info-close" aria-label="Close">×</button></div>
+      ${via ? `<div class="ti-via">${via}</div>` : ""}${notes.length ? `<div class="muted">${notes.join(" ")}</div>` : ""}
+      ${btns ? `<div class="ti-btns">${btns}</div>` : ""}`;
+  }
+
+  // zoom and pan
+  function applyTreeView() {
+    const v = TREE.view, canvas = document.getElementById("tree-canvas");
+    if (canvas) canvas.style.transform = `translate(${v.tx}px, ${v.ty}px) scale(${v.s})`;
+  }
+  function zoomTree(factor, cx, cy) {
+    const v = TREE.view, s = Math.min(2.5, Math.max(0.08, v.s * factor));
+    v.tx = cx - (cx - v.tx) * (s / v.s);
+    v.ty = cy - (cy - v.ty) * (s / v.s);
+    v.s = s;
+    applyTreeView();
+  }
+  function fitTree() {
+    const st = document.getElementById("tree-stage");
+    if (!st) return;
+    const W = st.clientWidth, H = st.clientHeight, { w, h } = TREE.size;
+    const s = Math.min(1.1, Math.max(0.08, Math.min((W - 60) / w, (H - 60) / h)));
+    Object.assign(TREE.view, { s, tx: (W - w * s) / 2, ty: (H - h * s) / 2 });
+    applyTreeView();
+  }
+  function focusRoot() {
+    const st = document.getElementById("tree-stage"), r = TREE.root;
+    if (!st || !r) return;
+    const s = 1, W = st.clientWidth, H = st.clientHeight;
+    const ty = TREE.dir === "forward" ? 30 - r.y * s : H - 30 - (r.y + NH) * s;
+    Object.assign(TREE.view, { s, tx: W / 2 - (r.x + NW / 2) * s, ty });
+    applyTreeView();
+  }
+  function wireTreeStage(st) {
+    const ptrs = new Map();
+    let last = null, moved = 0;
+    st.addEventListener("wheel", (e) => {
+      e.preventDefault();
+      const r = st.getBoundingClientRect();
+      if (e.ctrlKey || e.metaKey) zoomTree(Math.exp(-e.deltaY * 0.0025), e.clientX - r.left, e.clientY - r.top);
+      else { TREE.view.tx -= e.shiftKey && !e.deltaX ? e.deltaY : e.deltaX; TREE.view.ty -= e.shiftKey && !e.deltaX ? 0 : e.deltaY; applyTreeView(); }
+    }, { passive: false });
+    st.addEventListener("pointerdown", (e) => {
+      if (e.target.closest(".tree-info")) return;
+      // a mouse drag on the tree pans it; don't let it start a text selection
+      if (e.pointerType === "mouse" && e.button === 0) { e.preventDefault(); window.getSelection()?.removeAllRanges(); }
+      ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (ptrs.size === 1) { moved = 0; TREE.dragged = false; }
+      last = null;
+    });
+    st.addEventListener("pointermove", (e) => {
+      if (!ptrs.has(e.pointerId)) return;
+      const prev = ptrs.get(e.pointerId);
+      ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      const r = st.getBoundingClientRect();
+      if (ptrs.size === 1) {
+        const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
+        moved += Math.abs(dx) + Math.abs(dy);
+        if (moved > 5) {
+          if (!TREE.dragged) { TREE.dragged = true; st.classList.add("grabbing"); try { st.setPointerCapture(e.pointerId); } catch (err) {} }
+          TREE.view.tx += dx; TREE.view.ty += dy; applyTreeView();
+        }
+      } else if (ptrs.size === 2) {
+        const [a, b] = [...ptrs.values()];
+        const mid = { x: (a.x + b.x) / 2 - r.left, y: (a.y + b.y) / 2 - r.top }, dist = Math.hypot(a.x - b.x, a.y - b.y);
+        if (last) { TREE.view.tx += mid.x - last.mid.x; TREE.view.ty += mid.y - last.mid.y; zoomTree(dist / last.dist, mid.x, mid.y); }
+        last = { mid, dist };
+        TREE.dragged = true;
+      }
+    });
+    const up = (e) => {
+      ptrs.delete(e.pointerId); last = null;
+      if (!ptrs.size) {
+        st.classList.remove("grabbing");
+        // the click that ends a drag is ignored; after that, clicks and keyboard presses work again
+        if (TREE.dragged) setTimeout(() => { TREE.dragged = false; }, 0);
+      }
+    };
+    st.addEventListener("pointerup", up);
+    st.addEventListener("pointercancel", up);
+  }
+
+  function treeShellHTML() {
+    return `<div class="tree-wrap">
+      <div class="tree-bar">
+        <div class="seg" role="group" aria-label="Tree direction">
+          <button type="button" id="tree-fwd" aria-pressed="${TREE.dir === "forward"}">Pack → end cards</button>
+          <button type="button" id="tree-bwd" aria-pressed="${TREE.dir === "back"}">End card → packs</button>
+        </div>
+        <span id="tree-pick"></span>
+        <div class="tree-tools">
+          <button type="button" id="tree-expand">Expand all</button><button type="button" id="tree-collapse">Collapse</button>
+          <button type="button" id="tree-zout" aria-label="Zoom out">−</button><button type="button" id="tree-zin" aria-label="Zoom in">+</button>
+          <button type="button" id="tree-fit">Fit</button>
+        </div>
+      </div>
+      <div class="tree-legend">
+        <span><svg viewBox="0 0 30 8"><path d="M0 4h30" stroke="var(--accent)" stroke-width="3"/></svg>In a pack</span>
+        <span><svg viewBox="0 0 30 8"><path d="M0 4h30" stroke="var(--ink-2)" stroke-width="2.2"/></svg>Recipe</span>
+        <span><svg viewBox="0 0 30 8"><path d="M0 4h30" stroke="var(--accent)" stroke-width="2.2" stroke-dasharray="7 5"/></svg>Idea</span>
+        <span><svg viewBox="0 0 30 8"><path d="M1 4h28" stroke="var(--ink-2)" stroke-width="3" stroke-dasharray="1 6" stroke-linecap="round"/></svg>Harvest, explore, produce</span>
+        <span><svg viewBox="0 0 30 8"><path d="M0 4h30" stroke="var(--danger)" stroke-width="2.2" stroke-dasharray="9 5"/></svg>Enemy drop</span>
+        <span><span class="end-sample">End</span>Nothing else uses it</span>
+        <span id="tree-count"></span>
+      </div>
+      <div class="tree-stage" id="tree-stage">
+        <div class="tree-canvas" id="tree-canvas"></div>
+        <div class="tree-hint">Drag to move · ${matchMedia("(pointer: coarse)").matches ? "pinch" : "Ctrl + scroll"} to zoom · click a card for details</div>
+        <div class="tree-info" id="tree-info" hidden></div>
+      </div>
+    </div>`;
+  }
+  let treeCardLabels = null;
+  function treePickerHTML() {
+    if (TREE.dir === "forward") {
+      const groups = {};
+      for (const p of P) if (ownedPack(p.id)) (groups[p.board] ||= []).push(p);
+      const fromCard = !TREE.from.startsWith("pack:");
+      return `<select id="tree-pack" aria-label="Start from pack">${fromCard ? `<option value="${esc(TREE.from)}" selected>Card: ${esc(C[TREE.from].n)}</option>` : ""}
+        ${Object.entries(groups).map(([b, list]) => `<optgroup label="${esc(BOARDS[b])}">${list.map((p) =>
+          `<option value="pack:${esc(p.id)}" ${TREE.from === "pack:" + p.id ? "selected" : ""}>${esc(p.n)}</option>`).join("")}</optgroup>`).join("")}</select>`;
+    }
+    treeCardLabels = new Map();
+    const opts = ids.filter(owned).sort((a, b) => C[a].n.localeCompare(C[b].n)).map((k) => {
+      const label = `${C[k].n} (${TYPE_LABEL[C[k].t] || C[k].t})`;
+      treeCardLabels.set(label.toLowerCase(), k);
+      return `<option value="${esc(label)}"></option>`;
+    });
+    const cur = TREE.target ? `${C[TREE.target].n} (${TYPE_LABEL[C[TREE.target].t] || C[TREE.target].t})` : "";
+    return `<input id="tree-card" list="tree-cards" value="${esc(cur)}" placeholder="Type a card name" aria-label="Trace back from card" autocomplete="off"><datalist id="tree-cards">${opts.join("")}</datalist>`;
+  }
+  function drawTree(anchorKey) {
+    const canvas = document.getElementById("tree-canvas");
+    if (!canvas || !TREE.root) return;
+    const anchor = anchorKey && TREE.byKey.get(anchorKey);
+    const before = anchor && anchor.x != null ? { x: anchor.x, y: anchor.y } : null;
+    // search: highlight matching cards and open the branches that lead to them
+    const terms = qTerms();
+    let matchSet = null;
+    if (terms.length) {
+      matchSet = new Set();
+      for (const n of TREE.byKey.values()) {
+        const text = n.key.startsWith("pack:") ? keyName(n.key).toLowerCase() : searchText[n.key] || "";
+        if (matches(text, terms)) matchSet.add(n.key);
+      }
+      if (TREE.lastQ !== state.q) {
+        for (const k of matchSet) for (let p = TREE.byKey.get(k).parent; p; p = p.parent) p.open = true;
+      }
+    }
+    TREE.lastQ = state.q;
+    const vis = layoutTree();
+    if (before) { TREE.view.tx -= (anchor.x - before.x) * TREE.view.s; TREE.view.ty -= (anchor.y - before.y) * TREE.view.s; }
+    const onPath = new Set();
+    for (let n = TREE.sel && TREE.byKey.get(TREE.sel); n; n = n.parent) onPath.add(n.key);
+    const edges = vis.filter((n) => n.parent).map((n) =>
+      `<path class="${EDGE_CLASS[n.via.kind] || "e-recipe"} ${onPath.has(n.key) ? "onpath" : ""}" d="${edgePath(n.parent, n)}"/>`).join("");
+    canvas.innerHTML = `<svg width="${TREE.size.w}" height="${TREE.size.h}" aria-hidden="true">${edges}</svg>` + vis.map((n) => treeNodeHTML(n, onPath, matchSet)).join("");
+    TREE.prevVis = new Set(vis.map((n) => n.key));
+    applyTreeView();
+    const all = [...TREE.byKey.values()];
+    const cards = all.filter((n) => !n.key.startsWith("pack:")).length;
+    $("#tree-count").textContent = `${plural(cards, "card")} in this tree · ${all.filter((n) => n.end).length} end cards`;
+    $("#count").textContent = `${plural(cards, "card")} in the tree`;
+    const info = document.getElementById("tree-info");
+    const html = treeInfoHTML();
+    info.hidden = !html;
+    info.innerHTML = html;
+  }
+  function renderTree() {
+    const main = $("#main");
+    let fresh = false;
+    if (!main.querySelector(".tree-wrap")) { main.innerHTML = treeShellHTML(); wireTreeStage($("#tree-stage")); fresh = true; }
+    $("#tree-fwd").setAttribute("aria-pressed", TREE.dir === "forward");
+    $("#tree-bwd").setAttribute("aria-pressed", TREE.dir === "back");
+    const sig = [TREE.dir, TREE.dir === "forward" ? TREE.from : TREE.target, [...state.exp].sort().join(",")].join("|");
+    let rebuilt = false;
+    if (sig !== TREE.sig || !TREE.root) {
+      buildTree();
+      TREE.sig = [TREE.dir, TREE.dir === "forward" ? TREE.from : TREE.target, [...state.exp].sort().join(",")].join("|");
+      rebuilt = true;
+    }
+    $("#tree-pick").innerHTML = treePickerHTML();
+    drawTree();
+    if (rebuilt || fresh) focusRoot();
+  }
+  function setTree(changes) {
+    Object.assign(TREE, changes);
+    if (state.view !== "tree") setView("tree"); else renderTree();
+  }
+
   let dealTimer;
   function render(deal = false) {
     renderFilters();
-    if (state.view === "cards") renderCards(); else renderPacks();
+    $("#cat-wrap").hidden = state.view === "tree";
+    if (state.view === "cards") renderCards(); else if (state.view === "packs") renderPacks(); else renderTree();
     const main = $("#main");
     clearTimeout(dealTimer);
     main.classList.remove("dealing");
-    if (!deal) return;
+    if (!deal || state.view === "tree") return;
     // Deal the first few cards (the ones on screen) with a short stagger and a slight random tilt.
     [...main.querySelectorAll(state.view === "cards" ? ".tile" : ".pack")].slice(0, state.view === "cards" ? 42 : 12).forEach((el, i) => {
       el.classList.add("dl");
@@ -1032,7 +1455,8 @@ const META = {"build": "16550853", "cards": 708, "recipes": 321, "packs": 46};
     state.view = v;
     $("#tab-cards").setAttribute("aria-selected", v === "cards");
     $("#tab-packs").setAttribute("aria-selected", v === "packs");
-    $("#q").placeholder = v === "cards" ? "Search cards, e.g. plank, goblin, rum" : "Find packs containing a card";
+    $("#tab-tree").setAttribute("aria-selected", v === "tree");
+    $("#q").placeholder = v === "cards" ? "Search cards, e.g. plank, goblin, rum" : v === "packs" ? "Find packs containing a card" : "Highlight cards in the tree";
     window.scrollTo(0, 0);
     placeTabInd();
     render(true);
@@ -1056,6 +1480,43 @@ const META = {"build": "16550853", "cards": 708, "recipes": 321, "packs": 46};
   document.fonts?.ready.then(placeTabInd);
   // tilt the card under the pointer toward it, like picking it up
   const canTilt = matchMedia("(hover: hover) and (pointer: fine)").matches && !matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // Tree view controls
+  $("#main").addEventListener("click", (e) => {
+    if (state.view !== "tree") return;
+    const t = e.target;
+    const toggle = t.closest(".tn-toggle");
+    if (toggle) { if (TREE.dragged) return; const n = TREE.byKey.get(toggle.dataset.tkey); n.open = !n.open; drawTree(n.key); return; }
+    const sel = t.closest("[data-tsel]");
+    if (sel) { if (TREE.dragged) return; TREE.sel = TREE.sel === sel.dataset.tsel ? null : sel.dataset.tsel; drawTree(); return; }
+    const id = t.closest("button")?.id;
+    if (!id) return;
+    const st = document.getElementById("tree-stage");
+    if (id === "tree-fwd") setTree({ dir: "forward" });
+    else if (id === "tree-bwd") setTree({ dir: "back" });
+    else if (id === "tree-expand") { for (const n of TREE.byKey.values()) n.open = true; drawTree(); fitTree(); }
+    else if (id === "tree-collapse") { for (const n of TREE.byKey.values()) n.open = n === TREE.root; TREE.sel = null; drawTree(); focusRoot(); }
+    else if (id === "tree-zin") zoomTree(1.25, st.clientWidth / 2, st.clientHeight / 2);
+    else if (id === "tree-zout") zoomTree(0.8, st.clientWidth / 2, st.clientHeight / 2);
+    else if (id === "tree-fit") fitTree();
+    else if (id === "tree-info-close") { TREE.sel = null; drawTree(); }
+    else if (id === "tree-open" && TREE.sel) location.hash = TREE.sel;
+    else if (id === "tree-from-here" && TREE.sel) setTree({ dir: "forward", from: TREE.sel });
+    else if (id === "tree-back-here" && TREE.sel) setTree({ dir: "back", target: TREE.sel });
+  });
+  $("#main").addEventListener("dblclick", (e) => {
+    const sel = state.view === "tree" && e.target.closest(".tn-card[data-tsel]");
+    if (sel) location.hash = sel.dataset.tsel;
+  });
+  $("#main").addEventListener("change", (e) => {
+    if (e.target.id === "tree-pack") setTree({ from: e.target.value });
+    if (e.target.id === "tree-card") {
+      const v = e.target.value.trim().toLowerCase();
+      let k = treeCardLabels?.get(v);
+      if (!k) k = ids.find((x) => owned(x) && C[x].n.toLowerCase() === v && C[x].t !== "Ideas") || ids.find((x) => owned(x) && C[x].n.toLowerCase() === v);
+      if (k) setTree({ target: k });
+    }
+  });
+
   // "N more cards" in a pack: expand and collapse smoothly, dealing the extra rows in
   const label = (det) => {
     const s = det.querySelector("summary"), n = s.dataset.n;
@@ -1109,6 +1570,7 @@ const META = {"build": "16550853", "cards": 708, "recipes": 321, "packs": 46};
   }
   $("#tab-cards").addEventListener("click", () => setView("cards"));
   $("#tab-packs").addEventListener("click", () => setView("packs"));
+  $("#tab-tree").addEventListener("click", () => setView("tree"));
   $("#close").addEventListener("click", closeDrawer);
   $("#back").addEventListener("click", goBack);
   scrim.addEventListener("click", closeDrawer);
